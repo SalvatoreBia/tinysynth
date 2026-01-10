@@ -73,11 +73,13 @@ int check_for_MThd(MThd *mthd, FILE *fp)
     uint16_t td   = (uint16_t)buf[4] << 8 | (uint16_t)buf[5];
     if (td & 0x8000)
     {
+        mthd->is_fps = 1;
         mthd->timediv.frames_per_sec.smpte = (int8_t)buf[4];
         mthd->timediv.frames_per_sec.ticks = buf[5];
     }
     else
     {
+        mthd->is_fps = 0;
         mthd->timediv.ticks_per_beat = td & 0x7FFF;
     }
 
@@ -160,7 +162,6 @@ int parse_MTrk_meta_event(MTrk *mtrk, FILE *fp, uint32_t *bytes_read)
     (*bytes_read) += len_bytes;
 
     uint8_t buf[4];
-    printf("type -> %d\n", type);
     switch (type)
     {
     case 0x00:
@@ -237,7 +238,7 @@ int parse_MTrk_meta_event(MTrk *mtrk, FILE *fp, uint32_t *bytes_read)
 
         uint8_t *p = val;
         uint32_t us_per_qn = (p[0] << 16) | (p[1] << 8) | p[2];
-        if (us_per_qn > 8355711u) { free(val); return 0; }
+        if (us_per_qn > MAX_TEMPO_USPQN) { free(val); return 0; }
         mtrk->events[idx].ev.meta_ev.data = val;
         (*bytes_read) += 3;
         break;

@@ -74,47 +74,47 @@ static const char* get_meta_event_name(uint8_t type)
 static void write_channel_event(FILE *fp, const Channel_event *ch)
 {
     fprintf(fp, "{\n");
-    fprintf(fp, "        \"type\": \"channel\",\n");
-    fprintf(fp, "        \"name\": \"%s\",\n", get_channel_event_name(ch->type));
-    fprintf(fp, "        \"channel\": %u,\n", ch->channel);
-    fprintf(fp, "        \"message_type\": \"0x%X\",\n", ch->type);
+    fprintf(fp, "            \"type\": \"channel\",\n");
+    fprintf(fp, "            \"name\": \"%s\",\n", get_channel_event_name(ch->type));
+    fprintf(fp, "            \"channel\": %u,\n", ch->channel);
+    fprintf(fp, "            \"message_type\": \"0x%X\",\n", ch->type);
     
     switch (ch->type)
     {
     case 0x8:
     case 0x9:
-        fprintf(fp, "        \"note\": %u,\n", ch->param1);
-        fprintf(fp, "        \"velocity\": %u\n", ch->param2);
+        fprintf(fp, "            \"note\": %u,\n", ch->param1);
+        fprintf(fp, "            \"velocity\": %u\n", ch->param2);
         break;
     case 0xA:
-        fprintf(fp, "        \"note\": %u,\n", ch->param1);
-        fprintf(fp, "        \"pressure\": %u\n", ch->param2);
+        fprintf(fp, "            \"note\": %u,\n", ch->param1);
+        fprintf(fp, "            \"pressure\": %u\n", ch->param2);
         break;
     case 0xB:
-        fprintf(fp, "        \"controller\": %u,\n", ch->param1);
-        fprintf(fp, "        \"value\": %u\n", ch->param2);
+        fprintf(fp, "            \"controller\": %u,\n", ch->param1);
+        fprintf(fp, "            \"value\": %u\n", ch->param2);
         break;
     case 0xC:
-        fprintf(fp, "        \"program\": %u\n", ch->param1);
+        fprintf(fp, "            \"program\": %u\n", ch->param1);
         break;
     case 0xD:
-        fprintf(fp, "        \"pressure\": %u\n", ch->param1);
+        fprintf(fp, "            \"pressure\": %u\n", ch->param1);
         break;
     case 0xE:
-        fprintf(fp, "        \"lsb\": %u,\n", ch->param1);
-        fprintf(fp, "        \"msb\": %u\n", ch->param2);
+        fprintf(fp, "            \"lsb\": %u,\n", ch->param1);
+        fprintf(fp, "            \"msb\": %u\n", ch->param2);
         break;
     }
-    fprintf(fp, "      }");
+    fprintf(fp, "          }");
 }
 
 static void write_meta_event(FILE *fp, const Meta_event *meta)
 {
     fprintf(fp, "{\n");
-    fprintf(fp, "        \"type\": \"meta\",\n");
-    fprintf(fp, "        \"name\": \"%s\",\n", get_meta_event_name(meta->type));
-    fprintf(fp, "        \"meta_type\": \"0x%02X\",\n", meta->type);
-    fprintf(fp, "        \"length\": %u", meta->len);
+    fprintf(fp, "            \"type\": \"meta\",\n");
+    fprintf(fp, "            \"name\": \"%s\",\n", get_meta_event_name(meta->type));
+    fprintf(fp, "            \"meta_type\": \"0x%02X\",\n", meta->type);
+    fprintf(fp, "            \"length\": %u", meta->len);
     
     if (meta->data)
     {
@@ -124,7 +124,7 @@ static void write_meta_event(FILE *fp, const Meta_event *meta)
         switch (meta->type)
         {
         case 0x00:
-            fprintf(fp, "        \"sequence_number\": %u\n", (data[0] << 8) | data[1]);
+            fprintf(fp, "            \"sequence_number\": %u\n", (data[0] << 8) | data[1]);
             break;
             
         case 0x01:
@@ -135,17 +135,17 @@ static void write_meta_event(FILE *fp, const Meta_event *meta)
         case 0x06:
         case 0x07:
         case 0x09:
-            fprintf(fp, "        \"text\": ");
+            fprintf(fp, "            \"text\": ");
             write_text_data(fp, data, meta->len);
             fprintf(fp, "\n");
             break;
             
         case 0x20:
-            fprintf(fp, "        \"channel\": %u\n", data[0]);
+            fprintf(fp, "            \"channel\": %u\n", data[0]);
             break;
 
         case 0x21:
-            fprintf(fp, "        \"port\": %u\n", data[0]);
+            fprintf(fp, "            \"port\": %u\n", data[0]);
             break;
             
         case 0x2F:
@@ -154,8 +154,8 @@ static void write_meta_event(FILE *fp, const Meta_event *meta)
         case 0x51:
             {
                 uint32_t tempo = (data[0] << 16) | (data[1] << 8) | data[2];
-                fprintf(fp, "        \"microseconds_per_quarter_note\": %u,\n", tempo);
-                fprintf(fp, "        \"bpm\": %.2f\n", 60000000.0 / tempo);
+                fprintf(fp, "            \"microseconds_per_quarter_note\": %u,\n", tempo);
+                fprintf(fp, "            \"bpm\": %.2f\n", 60000000.0 / tempo);
             }
             break;
             
@@ -164,34 +164,34 @@ static void write_meta_event(FILE *fp, const Meta_event *meta)
                 uint8_t hour = data[0] & 0x1F;
                 uint8_t rr = (data[0] >> 5) & 0x03;
                 const char* rate_names[] = {"24 fps", "25 fps", "30 fps (drop frame)", "30 fps"};
-                fprintf(fp, "        \"hours\": %u,\n", hour);
-                fprintf(fp, "        \"minutes\": %u,\n", data[1]);
-                fprintf(fp, "        \"seconds\": %u,\n", data[2]);
-                fprintf(fp, "        \"frames\": %u,\n", data[3]);
-                fprintf(fp, "        \"fractional_frames\": %u,\n", data[4]);
-                fprintf(fp, "        \"frame_rate\": \"%s\"\n", rate_names[rr]);
+                fprintf(fp, "            \"hours\": %u,\n", hour);
+                fprintf(fp, "            \"minutes\": %u,\n", data[1]);
+                fprintf(fp, "            \"seconds\": %u,\n", data[2]);
+                fprintf(fp, "            \"frames\": %u,\n", data[3]);
+                fprintf(fp, "            \"fractional_frames\": %u,\n", data[4]);
+                fprintf(fp, "            \"frame_rate\": \"%s\"\n", rate_names[rr]);
             }
             break;
             
         case 0x58:
-            fprintf(fp, "        \"numerator\": %u,\n", data[0]);
-            fprintf(fp, "        \"denominator\": %u,\n", 1 << data[1]);
-            fprintf(fp, "        \"clocks_per_metronome_click\": %u,\n", data[2]);
-            fprintf(fp, "        \"32nd_notes_per_24_clocks\": %u\n", data[3]);
+            fprintf(fp, "            \"numerator\": %u,\n", data[0]);
+            fprintf(fp, "            \"denominator\": %u,\n", 1 << data[1]);
+            fprintf(fp, "            \"clocks_per_metronome_click\": %u,\n", data[2]);
+            fprintf(fp, "            \"32nd_notes_per_24_clocks\": %u\n", data[3]);
             break;
             
         case 0x59:
             {
                 int8_t key = *(int8_t*)data;
                 uint8_t scale = data[1];
-                fprintf(fp, "        \"key\": %d,\n", key);
-                fprintf(fp, "        \"scale\": \"%s\"\n", scale ? "minor" : "major");
+                fprintf(fp, "            \"key\": %d,\n", key);
+                fprintf(fp, "            \"scale\": \"%s\"\n", scale ? "minor" : "major");
             }
             break;
             
         case 0x7F:
         default:
-            fprintf(fp, "        \"data\": ");
+            fprintf(fp, "            \"data\": ");
             write_hex_bytes(fp, data, meta->len);
             fprintf(fp, "\n");
             break;
@@ -202,15 +202,15 @@ static void write_meta_event(FILE *fp, const Meta_event *meta)
         fprintf(fp, "\n");
     }
     
-    fprintf(fp, "      }");
+    fprintf(fp, "          }");
 }
 
 static void write_sysex_event(FILE *fp, const Sysex_event *sysex)
 {
     fprintf(fp, "{\n");
-    fprintf(fp, "        \"type\": \"sysex\",\n");
-    fprintf(fp, "        \"length\": %u,\n", sysex->len);
-    fprintf(fp, "        \"data\": ");
+    fprintf(fp, "            \"type\": \"sysex\",\n");
+    fprintf(fp, "            \"length\": %u,\n", sysex->len);
+    fprintf(fp, "            \"data\": ");
     if (sysex->data && sysex->len > 0)
     {
         write_hex_bytes(fp, (uint8_t*)sysex->data, sysex->len);
@@ -219,7 +219,7 @@ static void write_sysex_event(FILE *fp, const Sysex_event *sysex)
     {
         fprintf(fp, "\"\"");
     }
-    fprintf(fp, "\n      }");
+    fprintf(fp, "\n          }");
 }
 
 static void write_mthd(FILE *fp, const MThd *mthd)
@@ -228,21 +228,19 @@ static void write_mthd(FILE *fp, const MThd *mthd)
     fprintf(fp, "    \"format\": %u,\n", mthd->fmt);
     fprintf(fp, "    \"tracks\": %u,\n", mthd->ntracks);
     
-    if (mthd->fmt == 0 || mthd->fmt == 1)
+    fprintf(fp, "    \"time_division\": {\n");
+    if (!mthd->is_fps)
     {
-        fprintf(fp, "    \"time_division\": {\n");
         fprintf(fp, "      \"type\": \"ticks_per_beat\",\n");
         fprintf(fp, "      \"ticks_per_beat\": %u\n", mthd->timediv.ticks_per_beat);
-        fprintf(fp, "    }\n");
     }
     else
     {
-        fprintf(fp, "    \"time_division\": {\n");
         fprintf(fp, "      \"type\": \"frames_per_second\",\n");
         fprintf(fp, "      \"smpte_format\": %d,\n", mthd->timediv.frames_per_sec.smpte);
         fprintf(fp, "      \"ticks_per_frame\": %u\n", mthd->timediv.frames_per_sec.ticks);
-        fprintf(fp, "    }\n");
     }
+    fprintf(fp, "    }\n");
     
     fprintf(fp, "  }");
 }

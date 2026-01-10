@@ -31,7 +31,7 @@ int main(int argc, char **argv)
     printf("Successfully parsed MIDI file:\n");
     printf("  Format: %u\n", midi.mthd.fmt);
     printf("  Tracks: %u\n", midi.mthd.ntracks);
-    if (midi.mthd.fmt <= 1)
+    if (!midi.mthd.is_fps)
         printf("  Ticks per beat: %u\n", midi.mthd.timediv.ticks_per_beat);
     else
         printf("  SMPTE: %d, Ticks per frame: %u\n", 

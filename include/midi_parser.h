@@ -5,8 +5,10 @@
 #include <stdint.h>
 #include <stddef.h>
 
-#define MThd_string 0x4D546864
-#define MTrk_string 0x4D54726B
+#define MThd_string     0x4D546864
+#define MTrk_string     0x4D54726B
+
+#define MAX_TEMPO_USPQN     8355711u
 
 // ------------------------------------------------------
 
@@ -14,6 +16,7 @@ typedef struct
 {
     uint16_t fmt;
     uint16_t ntracks;
+    uint8_t  is_fps;
     union
     {
         uint16_t ticks_per_beat;
@@ -27,8 +30,8 @@ typedef struct
 
 typedef struct
 {
-    uint8_t  type;
-    uint8_t  channel;
+    uint8_t  type    : 4;
+    uint8_t  channel : 4;
     uint8_t  param1;
     uint8_t  param2;
 } Channel_event;
