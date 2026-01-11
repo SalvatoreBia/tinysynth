@@ -10,7 +10,7 @@ To compile: `make`
 
 Run the program:
 ```bash
-./midi_parser <input.mid> [-o output.json] [-a output.wav]
+./tinysynth <input.mid> [-o output.json] [-a output.wav]
 ```
 
 Options:
@@ -20,9 +20,9 @@ Options:
 
 Examples:
 ```bash
-./midi_parser song.mid -o song.json
-./midi_parser song.mid -a song.wav
-./midi_parser song.mid -o song.json -a song.wav
+./tinysynth song.mid -o song.json
+./tinysynth song.mid -a song.wav
+./tinysynth song.mid -o song.json -a song.wav
 ```
 
 ### Notes
