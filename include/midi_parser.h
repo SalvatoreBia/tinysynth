@@ -49,7 +49,13 @@ typedef struct
     void*    data;
 } Sysex_event;
 
-typedef enum { CH, META, SYS } Event_kind;
+typedef enum
+{ 
+    CH,
+    META,
+    SYS 
+} Event_kind;
+
 typedef struct
 {
     uint32_t delta_time;
@@ -59,7 +65,7 @@ typedef struct
         Channel_event channel_ev;
         Meta_event    meta_ev;
         Sysex_event   sysex_ev;
-    } ev;
+    };
     
 } MTrk_event;
 

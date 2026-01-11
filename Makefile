@@ -1,15 +1,15 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -std=c99 -Iinclude
-LDFLAGS = 
+LDFLAGS = -lm 
 
 SRCDIR = src
 INCDIR = include
 OBJDIR = obj
 
-SOURCES = main.c $(SRCDIR)/midi_parser.c $(SRCDIR)/json_generator.c
+SOURCES = main.c $(SRCDIR)/midi_parser.c $(SRCDIR)/json_generator.c $(SRCDIR)/midi_preprocessor.c $(SRCDIR)/synth.c
 OBJECTS = $(SOURCES:.c=.o)
 
-TARGET = midi_parser
+TARGET = tinysynth
 
 all: $(TARGET)
 

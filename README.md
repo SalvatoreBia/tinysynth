@@ -1,12 +1,37 @@
-# MIDI File Parser
+# tinysynth
 
-A MIDI file parser written in C, that enables the export of such file in a readable format (json).
+A MIDI file parser and (basic) synthesizer written in C, that enables:
+- Export of MIDI files to readable JSON format
+- Generation of audio WAV files from MIDI
 
 ### Usage
 
-To compile, you can run either `make` or `make all`.
+To compile: `make`
 
-The Makefile provides several options, run `make help` to see them.
+Run the program:
+```bash
+./midi_parser <input.mid> [-o output.json] [-a output.wav]
+```
+
+Options:
+- `-o output.json` : Parse MIDI and write to JSON file
+- `-a output.wav` : Generate audio WAV file from MIDI
+- At least one option must be specified
+
+Examples:
+```bash
+./midi_parser song.mid -o song.json
+./midi_parser song.mid -a song.wav
+./midi_parser song.mid -o song.json -a song.wav
+```
+
+### Notes
+
+The MIDI parser is quite strict in following the MIDI standard, but it tolerates some common encoding errors found in real-world MIDI files (e.g., parameter values > 127 are masked to 7 bits). If you encounter a parsing failure with a file you believe is valid, or if you notice missing event type support, feel free to open an issue or contact me.
+
+### Dependencies
+
+- [miniaudio](https://github.com/mackron/miniaudio) - Single-file audio library for WAV encoding (MIT License)
 
 ---
 

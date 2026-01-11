@@ -264,13 +264,13 @@ static void write_mtrk(FILE *fp, const MTrk *mtrk, uint16_t track_num)
         switch (event->kind)
         {
         case CH:
-            write_channel_event(fp, &event->ev.channel_ev);
+            write_channel_event(fp, &event->channel_ev);
             break;
         case META:
-            write_meta_event(fp, &event->ev.meta_ev);
+            write_meta_event(fp, &event->meta_ev);
             break;
         case SYS:
-            write_sysex_event(fp, &event->ev.sysex_ev);
+            write_sysex_event(fp, &event->sysex_ev);
             break;
         }
         

@@ -14,12 +14,12 @@ void free_MTrk(MTrk *mtrk)
         {
             if (mtrk->events[i].kind == META)
             {
-                void *data = mtrk->events[i].ev.meta_ev.data;
+                void *data = mtrk->events[i].meta_ev.data;
                 if (data) free(data);
             }
             else if (mtrk->events[i].kind == SYS)
             {
-                void *data = mtrk->events[i].ev.sysex_ev.data;
+                void *data = mtrk->events[i].sysex_ev.data;
                 if (data) free(data);
             }
         }
@@ -110,8 +110,8 @@ int parse_MTrk_channel_event(MTrk *mtrk, FILE *fp, uint32_t *bytes_read)
     size_t idx = mtrk->count;
     mtrk->events[idx].kind = CH;
 
-    uint8_t type    = mtrk->events[idx].ev.channel_ev.type;
-    // uint8_t channel = mtrk->events[idx].ev.channel_ev.channel;
+    uint8_t type    = mtrk->events[idx].channel_ev.type;
+    // uint8_t channel = mtrk->events[idx].channel_ev.channel;
 
     switch (type)
     {
@@ -119,8 +119,9 @@ int parse_MTrk_channel_event(MTrk *mtrk, FILE *fp, uint32_t *bytes_read)
     case 0x0D:
         uint8_t param;
         if (fread(&param, 1, 1, fp) != 1) return 0;
-        if (param > 127) return 0;
-        mtrk->events[idx].ev.channel_ev.param1 = param;
+        if (param > 127)
+            param &= 0x7F;
+        mtrk->events[idx].channel_ev.param1 = param;
         *bytes_read = 1;
         break;
         
@@ -132,9 +133,12 @@ int parse_MTrk_channel_event(MTrk *mtrk, FILE *fp, uint32_t *bytes_read)
         uint8_t param1, param2;
         if (fread(&param1, 1, 1, fp) != 1) return 0;
         if (fread(&param2, 1, 1, fp) != 1) return 0;
-        if (param1 > 127 || param2 > 127)  return 0;
-        mtrk->events[idx].ev.channel_ev.param1 = param1;
-        mtrk->events[idx].ev.channel_ev.param2 = param2;
+        if (param1 > 127 || param2 > 127) {
+            param1 &= 0x7F;
+            param2 &= 0x7F;
+        }
+        mtrk->events[idx].channel_ev.param1 = param1;
+        mtrk->events[idx].channel_ev.param2 = param2;
         *bytes_read = 2;
         break;
         
@@ -152,13 +156,14 @@ int parse_MTrk_meta_event(MTrk *mtrk, FILE *fp, uint32_t *bytes_read)
 
     size_t idx = mtrk->count;
     mtrk->events[idx].kind = META;
-    mtrk->events[idx].ev.meta_ev.type = type;
+    mtrk->events[idx].meta_ev.type = type;
     (*bytes_read)++;
 
     int code; uint32_t len_bytes;
     uint32_t len = get_VLQ(fp, &code, &len_bytes);
     if (code < 0) return 0;
-    mtrk->events[idx].ev.meta_ev.len = len;
+    
+    mtrk->events[idx].meta_ev.len = len;
     (*bytes_read) += len_bytes;
 
     uint8_t buf[4];
@@ -173,7 +178,7 @@ int parse_MTrk_meta_event(MTrk *mtrk, FILE *fp, uint32_t *bytes_read)
         if (fread(buf, 1, 2, fp) != 2) { free(val); return 0; }
         *(uint8_t*)val       = buf[0];
         *((uint8_t*)val + 1) = buf[1];
-        mtrk->events[idx].ev.meta_ev.data = val;
+        mtrk->events[idx].meta_ev.data = val;
         (*bytes_read) += 2;
         break;
     }
@@ -191,7 +196,7 @@ int parse_MTrk_meta_event(MTrk *mtrk, FILE *fp, uint32_t *bytes_read)
         if (!val) return 0;
 
         if (fread(val, 1, len, fp) != len) { free(val); return 0; }
-        mtrk->events[idx].ev.meta_ev.data = val;
+        mtrk->events[idx].meta_ev.data = val;
         (*bytes_read) += (uint32_t)len;
         break;
     }
@@ -204,7 +209,7 @@ int parse_MTrk_meta_event(MTrk *mtrk, FILE *fp, uint32_t *bytes_read)
 
         if (fread(val, 1, 1, fp) != 1) { free(val); return 0; }
         if (*(uint8_t*)val > 15) { free(val); return 0; }
-        mtrk->events[idx].ev.meta_ev.data = val;
+        mtrk->events[idx].meta_ev.data = val;
         (*bytes_read)++;
         break;
     }
@@ -216,7 +221,7 @@ int parse_MTrk_meta_event(MTrk *mtrk, FILE *fp, uint32_t *bytes_read)
         if (!val) return 0;
 
         if (fread(val, 1, 1, fp) != 1) { free(val); return 0; }
-        mtrk->events[idx].ev.meta_ev.data = val;
+        mtrk->events[idx].meta_ev.data = val;
         (*bytes_read)++;
         break;
     }
@@ -224,7 +229,7 @@ int parse_MTrk_meta_event(MTrk *mtrk, FILE *fp, uint32_t *bytes_read)
     case 0x2F:
     {
         if (len != 0) return 0;
-        mtrk->events[idx].ev.meta_ev.data = NULL;
+        mtrk->events[idx].meta_ev.data = NULL;
         return 2;
     }
 
@@ -239,7 +244,7 @@ int parse_MTrk_meta_event(MTrk *mtrk, FILE *fp, uint32_t *bytes_read)
         uint8_t *p = val;
         uint32_t us_per_qn = (p[0] << 16) | (p[1] << 8) | p[2];
         if (us_per_qn > MAX_TEMPO_USPQN) { free(val); return 0; }
-        mtrk->events[idx].ev.meta_ev.data = val;
+        mtrk->events[idx].meta_ev.data = val;
         (*bytes_read) += 3;
         break;
     }
@@ -265,7 +270,7 @@ int parse_MTrk_meta_event(MTrk *mtrk, FILE *fp, uint32_t *bytes_read)
             (rr == 2 && fr > 29) ||
             (rr == 3 && fr > 29)) { free(val); return 0; }
         
-        mtrk->events[idx].ev.meta_ev.data = val;
+        mtrk->events[idx].meta_ev.data = val;
         (*bytes_read) += 5;
         break;
     }
@@ -279,7 +284,7 @@ int parse_MTrk_meta_event(MTrk *mtrk, FILE *fp, uint32_t *bytes_read)
         if (fread(val, 1, 4, fp) != 4) { free(val); return 0; }
         if (*((uint8_t*)val+3) == 0)   { free(val); return 0; }
         
-        mtrk->events[idx].ev.meta_ev.data = val;
+        mtrk->events[idx].meta_ev.data = val;
         (*bytes_read) += 4;
         break;
     }
@@ -296,7 +301,7 @@ int parse_MTrk_meta_event(MTrk *mtrk, FILE *fp, uint32_t *bytes_read)
         uint8_t scale = *((uint8_t*)val+1);
         if (key < -7 || key > 7 || scale > 1) { free(val); return 0; }
         
-        mtrk->events[idx].ev.meta_ev.data = val;
+        mtrk->events[idx].meta_ev.data = val;
         (*bytes_read) += 2;
         break;
     }
@@ -307,7 +312,7 @@ int parse_MTrk_meta_event(MTrk *mtrk, FILE *fp, uint32_t *bytes_read)
         if (!val) return 0;
 
         if (fread(val, 1, len, fp) != len) { free(val); return 0; }
-        mtrk->events[idx].ev.meta_ev.data = val;
+        mtrk->events[idx].meta_ev.data = val;
         (*bytes_read) += len;
         break;
     }
@@ -332,8 +337,8 @@ int parse_MTrk_sysex_event(MTrk *mtrk, FILE *fp, uint32_t *bytes_read)
     if (!val) return 0;
 
     if (fread(val, 1, len, fp) != len) { free(val); return 0; }
-    mtrk->events[idx].ev.sysex_ev.len  = len;
-    mtrk->events[idx].ev.sysex_ev.data = val;
+    mtrk->events[idx].sysex_ev.len  = len;
+    mtrk->events[idx].sysex_ev.data = val;
     (*bytes_read) += len;
     
     return 1;
@@ -367,12 +372,15 @@ int parse_MTrk_events(MTrk *mtrk, FILE *fp)
 {
     uint32_t remaining_bytes = mtrk->size;
     uint8_t running_status = 0;
+    uint32_t event_count = 0;
+    
     while (remaining_bytes > 0)
     {
         // read the event delta time as a VLQ
         int code; uint32_t delta_bytes;
         uint32_t delta = get_VLQ(fp, &code, &delta_bytes);
-        if (code < 0) return 0;
+        if (code < 0)
+            return 0;
 
         if (!mtrk_ensure_one(mtrk)) return 0;
         size_t idx = mtrk->count;
@@ -380,28 +388,31 @@ int parse_MTrk_events(MTrk *mtrk, FILE *fp)
         mtrk->events[idx].delta_time = delta;
         remaining_bytes -= delta_bytes;
 
-        if (remaining_bytes == 0) return 0;
+        if (remaining_bytes == 0)
+            return 0;
 
         // read the event type and dispatch
         uint8_t evtype;
-        if (fread(&evtype, 1, 1, fp) != 1) return 0;
+        if (fread(&evtype, 1, 1, fp) != 1)
+            return 0;
 
         uint32_t bytes_read = 0;
         if (evtype >= 0x80)
         {
-            mtrk->events[idx].ev.channel_ev.type    = evtype >> 4;
-            mtrk->events[idx].ev.channel_ev.channel = evtype & 0x0F;
+            mtrk->events[idx].channel_ev.type    = evtype >> 4;
+            mtrk->events[idx].channel_ev.channel = evtype & 0x0F;
             remaining_bytes--;
 
             if (evtype == 0xFF)
             {
                 int fine = parse_MTrk_meta_event(mtrk, fp, &bytes_read) > 0;
-                if (!fine) return 0;
+                if (!fine)
+                    return 0;
                 
-                if (bytes_read > remaining_bytes) return 0;
+                if (bytes_read > remaining_bytes)
+                    return 0;
                 remaining_bytes -= bytes_read;
 
-                // if fine == 2, End Of Track occurred
                 if (fine == 2)
                 {
                     if (remaining_bytes > 0) fseek(fp, (long)remaining_bytes, SEEK_CUR);
@@ -411,28 +422,35 @@ int parse_MTrk_events(MTrk *mtrk, FILE *fp)
             }
             else if (evtype == 0xF0 || evtype == 0xF7)
             {
-                if (!parse_MTrk_sysex_event(mtrk, fp, &bytes_read)) return 0;
-                if (bytes_read > remaining_bytes) return 0;
+                if (!parse_MTrk_sysex_event(mtrk, fp, &bytes_read))
+                    return 0;
+                if (bytes_read > remaining_bytes)
+                    return 0;
                 remaining_bytes -= bytes_read;
             }
             else
             {
                 running_status = evtype;
-                if (!parse_MTrk_channel_event(mtrk, fp, &bytes_read)) return 0;
-                if (bytes_read > remaining_bytes) return 0;
+                if (!parse_MTrk_channel_event(mtrk, fp, &bytes_read))
+                    return 0;
+                if (bytes_read > remaining_bytes)
+                    return 0;
                 remaining_bytes -= bytes_read;
             }
         }
         else
         {
-            mtrk->events[idx].ev.channel_ev.type    = running_status >> 4;
-            mtrk->events[idx].ev.channel_ev.channel = running_status & 0x0F;
+            mtrk->events[idx].channel_ev.type    = running_status >> 4;
+            mtrk->events[idx].channel_ev.channel = running_status & 0x0F;
             fseek(fp, -1L, SEEK_CUR);
-            if (!parse_MTrk_channel_event(mtrk, fp, &bytes_read)) return 0;
-            if (bytes_read > remaining_bytes) return 0;
+            if (!parse_MTrk_channel_event(mtrk, fp, &bytes_read))
+                return 0;
+            if (bytes_read > remaining_bytes)
+                return 0;
             remaining_bytes -= bytes_read;
         }
         mtrk->count++;
+        event_count++;
     }
 
     return 1;
@@ -469,7 +487,9 @@ MIDI_file get_MIDI_file(FILE *fp, int *status)
     memset(&midi, 0, sizeof(MIDI_file));
 
     if (!fp) goto fail;
-    if (!check_for_MThd(&midi.mthd, fp)) goto fail;
+    
+    if (!check_for_MThd(&midi.mthd, fp))
+        goto fail;
 
     midi.mtrk = (MTrk*) malloc(sizeof(MTrk) * midi.mthd.ntracks);
     if (!midi.mtrk) goto fail;
